@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateQuestionRequest } from './types/create-question-request';
+import type { CreateQuestionResponse } from './types/create-question-response';
+import type { GetQuestionsResponse } from './types/get-questions-response';
 
 export function useCreateQuestion(roomId: string) {
   const queryclient = useQueryClient();
@@ -17,13 +19,62 @@ export function useCreateQuestion(roomId: string) {
         }
       );
 
-      const result: CreateQuestionRequest = await response.json();
+      const result: CreateQuestionResponse = await response.json();
 
       return result;
     },
 
-    onSuccess: () => {
-      queryclient.invalidateQueries({ queryKey: ['get-questions', roomId] });
+    onMutate: ({ question }: CreateQuestionRequest) => {
+      const questions = queryclient.getQueryData<GetQuestionsResponse>([
+        'get-questions',
+        roomId,
+      ]);
+
+      const questionsArray = questions ?? [];
+
+      const newQuestion = {
+        id: crypto.randomUUID(),
+        question,
+        answer: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      queryclient.setQueryData<GetQuestionsResponse>(
+        ['get-questions', roomId],
+        [newQuestion, ...questionsArray]
+      );
+
+      return { newQuestion, questions };
+    },
+
+    onSuccess: (data, _variables, context) => {
+      queryclient.setQueryData<GetQuestionsResponse>(
+        ['get-questions', roomId],
+        questions => {
+          if (!questions || !context.newQuestion) return questions;
+
+          return questions.map(question => {
+            if (question.id === context.newQuestion.id) {
+              return {
+                ...context.newQuestion,
+                id: data.questionId,
+                answer: data.answer,
+              };
+            }
+
+            return question;
+          });
+        }
+      );
+    },
+
+    onError: (_, __, context) => {
+      if (context?.questions) {
+        queryclient.setQueryData<GetQuestionsResponse>(
+          ['get-questions', roomId],
+          context.questions
+        );
+      }
     },
   });
 }

@@ -35,10 +35,9 @@ GET {{baseUrl}}/rooms/{{roomId}}/questions
 
 # Create room question
 # @name createRoomQuestion
-POST {{baseUrl}}/rooms/{{roomId}}/questions
+POST {{baseUrl}}/rooms/6f05315b-1442-4bfa-af46-cf39d951f59e/questions
 Content-Type: application/json
 
 {
-  "question": "Question 2?",
-  "answer": "Answer 2"
+  "question": "O que é Trump?",
 }

@@ -15,6 +15,13 @@
       "when": 1752086126564,
       "tag": "0001_chubby_dreaming_celestial",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1752330114458,
+      "tag": "0002_absent_lifeguard",
+      "breakpoints": true
     }
   ]
 }
